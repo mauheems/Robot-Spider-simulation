@@ -70,7 +70,7 @@ class Spider:
     def create_leg_trajectory(self, shoulder_pos, forward_dir, side_dir):
         """Creates spline trajectory for a single leg including ground contact"""
         stride_length = 6
-        stride_height = 4
+        stride_height = 3
         stride_width = 4
         
         # Define number of points for each phase
@@ -92,10 +92,9 @@ class Spider:
                 swing_t = normalized_t / 0.4
                 
                 # Parabolic height trajectory
-                height = stride_height * 4 * swing_t * (1 - swing_t)
+                height = stride_height * 3 * swing_t * (1 - swing_t)
                 
                 # Side offset
-                side_offset = stride_width * (1 + 0.3 * np.sin(np.pi * swing_t))
                 side_offset = stride_width * (1 + 0.7 * np.sin(np.pi * swing_t))
                 
                 # Forward movement (same direction for all legs)
