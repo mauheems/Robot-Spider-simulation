@@ -69,10 +69,9 @@ class Spider:
     
     def create_leg_trajectory(self, shoulder_pos, forward_dir, side_dir):
         """Creates spline trajectory for a single leg including ground contact"""
-        # Increase stride parameters
-        stride_length = 6      # Forward/backward distance (increased from 4)
-        stride_height = 2    # Maximum height during swing (increased from 3)
-        stride_width = 4      # Lateral distance from shoulder (increased from 2)
+        stride_length = 6
+        stride_height = 4
+        stride_width = 4
         
         # Define number of points for each phase
         num_swing_points = 20
@@ -85,7 +84,7 @@ class Spider:
         # Create points array
         points = np.zeros((total_points, 3))
         
-        # Fill points array with wider trajectory
+        # Fill points array
         for i in range(total_points):
             normalized_t = t[i]
             
@@ -95,21 +94,22 @@ class Spider:
                 # Parabolic height trajectory
                 height = stride_height * 4 * swing_t * (1 - swing_t)
                 
-                # Add more lateral movement during swing
-                side_offset = stride_width * (1 + .6 * np.sin(np.pi * swing_t))  # Extra lateral movement
+                # Side offset
+                side_offset = stride_width * (1 + 0.3 * np.sin(np.pi * swing_t))
+                side_offset = stride_width * (1 + 0.7 * np.sin(np.pi * swing_t))
                 
-                # Forward movement
+                # Forward movement (same direction for all legs)
                 forward_pos = -stride_length/2 + stride_length * swing_t
                 
             else:  # Stance phase (60% of cycle)
                 stance_t = (normalized_t - 0.4) / 0.6
                 height = 0
-                side_offset = stride_width  # Constant during stance
+                side_offset = stride_width
                 forward_pos = stride_length/2 - stride_length * stance_t
             
-            # Calculate position with wider trajectory
+            # Calculate position
             pos = shoulder_pos.copy()
-            pos += forward_dir * forward_pos
+            pos += forward_dir * forward_pos  # Same forward direction for all legs
             pos += side_dir * side_offset
             pos[2] = height
             
@@ -133,11 +133,13 @@ class Spider:
         """Creates trajectories for all legs"""
         trajectories = []
         
-        for shoulder_offset in self.shoulder_offsets:
+        for i, shoulder_offset in enumerate(self.shoulder_offsets):
             shoulder_pos = self.body_pos + shoulder_offset
             
-            # Determine forward and side directions based on leg position
-            forward_dir = np.array([1, 0, 0]) if shoulder_offset[0] > 0 else np.array([-1, 0, 0])
+            # Use same forward direction for all legs (positive X is forward)
+            forward_dir = np.array([1, 0, 0])  # Same for all legs
+            
+            # Side direction depends on which side the leg is on
             side_dir = np.array([0, 1, 0]) if shoulder_offset[1] > 0 else np.array([0, -1, 0])
             
             trajectory = self.create_leg_trajectory(shoulder_pos, forward_dir, side_dir)
